@@ -115,3 +115,6 @@ gradle-app.setting
 # gradle/wrapper/gradle-wrapper.properties
 # Ignore Gradle build output directory
 build
+
+# Custom entries
+src/main/resources/db.properties
