@@ -15,4 +15,11 @@ public final class Helper {
 			throw new RuntimeException(e);
 		}
 	}
+
+	public static void doSilently(Runnable runnable) {
+		try {
+			runnable.run();
+		} catch (Throwable ignored) {
+		}
+	}
 }

@@ -106,21 +106,14 @@ public class Main {
 	}
 
 	private void cleanup() {
-		doSilently(() -> {
+		Helper.doSilently(() -> {
 			ReizigerDAO rdao = new ReizigerDAOImpl(this.conn);
 			rdao.delete(rdao.findById(TEST_ID));
 		});
-		doSilently(() -> {
+		Helper.doSilently(() -> {
 			AdresDAO adao = new AdresDAOImpl(this.conn);
 			adao.delete(adao.findById(TEST_ID));
 
 		});
-	}
-
-	private static void doSilently(Runnable runnable) {
-		try {
-			runnable.run();
-		} catch (Throwable ignored) {
-		}
 	}
 }
