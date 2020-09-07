@@ -1,6 +1,6 @@
 package nl.appelgebakje22.dp.impl;
 
-import lombok.AllArgsConstructor;
+import nl.appelgebakje22.dp.dao.AdresDAO;
 import nl.appelgebakje22.dp.dao.ReizigerDAO;
 import nl.appelgebakje22.dp.domain.Reiziger;
 
@@ -9,10 +9,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@AllArgsConstructor
 public class ReizigerDAOImpl implements ReizigerDAO {
 
 	private final Connection conn;
+	private final AdresDAO adao;
+
+	public ReizigerDAOImpl(Connection conn) {
+		this.conn = conn;
+		this.adao = new AdresDAOImpl(conn);
+	}
 
 	@Override
 	public boolean save(Reiziger entity) {
@@ -22,9 +27,11 @@ public class ReizigerDAOImpl implements ReizigerDAO {
 			stmt.setString(3, entity.getTussenvoegsel());
 			stmt.setString(4, entity.getAchternaam());
 			stmt.setDate(5, entity.getGeboortedatum());
-			return stmt.execute();
+			if (stmt.executeUpdate() == 1) {
+				return this.adao.save(entity.getAdres());
+			}
+			return false;
 		} catch (SQLException e) {
-			e.printStackTrace();
 			return false;
 		}
 	}
@@ -39,20 +46,24 @@ public class ReizigerDAOImpl implements ReizigerDAO {
 			stmt.setString(3, entity.getAchternaam());
 			stmt.setDate(4, entity.getGeboortedatum());
 			stmt.setInt(5, entity.getId());
-			return !stmt.execute(); //Update returns false
+			if (stmt.executeUpdate() == 1) {
+				return this.adao.update(entity.getAdres());
+			}
+			return false;
 		} catch (SQLException e) {
-			e.printStackTrace();
 			return false;
 		}
 	}
 
 	@Override
 	public boolean delete(Reiziger entity) {
+		if (!this.adao.delete(entity.getAdres())) {
+			return false;
+		}
 		try (PreparedStatement stmt = this.conn.prepareStatement("DELETE FROM reiziger WHERE reiziger_id = ?")) {
 			stmt.setInt(1, entity.getId());
-			return !stmt.execute();
+			return stmt.executeUpdate() == 1;
 		} catch (SQLException e) {
-			e.printStackTrace();
 			return false;
 		}
 	}
@@ -68,19 +79,17 @@ public class ReizigerDAOImpl implements ReizigerDAO {
 			}
 			return result;
 		} catch (SQLException e) {
-			e.printStackTrace();
 			return Collections.emptyList();
 		}
 	}
 
 	@Override
 	public Reiziger findById(int id) {
-		try (PreparedStatement stmt = this.conn.prepareStatement("SELECT * FROM reiziger WHERE reizigers_id = ?")) {
+		try (PreparedStatement stmt = this.conn.prepareStatement("SELECT * FROM reiziger WHERE reiziger_id = ?")) {
 			stmt.setInt(1, id);
 			ResultSet set = stmt.executeQuery();
-			return set.first() ? mapEntity(set) : null;
+			return set.next() ? mapEntity(set) : null;
 		} catch (SQLException e) {
-			e.printStackTrace();
 			return null;
 		}
 	}
@@ -95,18 +104,18 @@ public class ReizigerDAOImpl implements ReizigerDAO {
 			}
 			return result;
 		} catch (SQLException e) {
-			e.printStackTrace();
 			return Collections.emptyList();
 		}
 	}
 
-	private static Reiziger mapEntity(ResultSet set) throws SQLException {
+	private Reiziger mapEntity(ResultSet set) throws SQLException {
 		Reiziger result = new Reiziger();
 		result.setId(set.getInt("reiziger_id"));
 		result.setVoorletters(set.getString("voorletters"));
 		result.setTussenvoegsel(set.getString("tussenvoegsel"));
 		result.setAchternaam(set.getString("achternaam"));
 		result.setGeboortedatum(set.getDate("geboortedatum"));
+		result.setAdres(this.adao.findByReiziger(result));
 		return result;
 	}
 }
