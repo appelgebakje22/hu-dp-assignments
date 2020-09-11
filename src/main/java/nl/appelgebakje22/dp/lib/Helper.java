@@ -1,4 +1,4 @@
-package nl.appelgebakje22.dp;
+package nl.appelgebakje22.dp.lib;
 
 import java.io.IOException;
 import java.io.InputStream;

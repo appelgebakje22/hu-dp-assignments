@@ -1,12 +1,12 @@
 package nl.appelgebakje22.dp;
 
-import lombok.AllArgsConstructor;
 import nl.appelgebakje22.dp.dao.AdresDAO;
 import nl.appelgebakje22.dp.dao.ReizigerDAO;
 import nl.appelgebakje22.dp.domain.Adres;
 import nl.appelgebakje22.dp.domain.Reiziger;
 import nl.appelgebakje22.dp.impl.AdresDAOImpl;
 import nl.appelgebakje22.dp.impl.ReizigerDAOImpl;
+import nl.appelgebakje22.dp.lib.Helper;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

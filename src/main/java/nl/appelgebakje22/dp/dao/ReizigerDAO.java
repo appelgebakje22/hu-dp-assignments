@@ -1,8 +1,7 @@
 package nl.appelgebakje22.dp.dao;
 
-import nl.appelgebakje22.dp.domain.Reiziger;
-
 import java.util.List;
+import nl.appelgebakje22.dp.domain.Reiziger;
 
 public interface ReizigerDAO extends IDAO<Reiziger> {
 

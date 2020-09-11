@@ -1,44 +1,40 @@
 package nl.appelgebakje22.dp.impl;
 
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import nl.appelgebakje22.dp.dao.AdresDAO;
-import nl.appelgebakje22.dp.dao.ReizigerDAO;
 import nl.appelgebakje22.dp.domain.Adres;
 import nl.appelgebakje22.dp.domain.Reiziger;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+public final class AdresDAOImpl extends AbstractDAOImpl<Adres> implements AdresDAO {
 
-@RequiredArgsConstructor
-public class AdresDAOImpl implements AdresDAO {
-
-	private final Connection conn;
-	@SuppressWarnings("unused") @Setter
-	private ReizigerDAO rdao;
+	public AdresDAOImpl(Connection conn) {
+		super(conn, Adres.class);
+	}
 
 	@Override
 	public boolean save(Adres entity) {
-		try (PreparedStatement stmt = this.conn.prepareStatement("INSERT INTO adres VALUES (?,?,?,?,?,?)")) {
-			stmt.setInt(1, entity.getId());
-			stmt.setString(2, entity.getPostcode());
-			stmt.setString(3, entity.getHuisnummer());
-			stmt.setString(4, entity.getStraat());
-			stmt.setString(5, entity.getWoonplaats());
-			stmt.setInt(6, entity.getReiziger_id());
+		try (PreparedStatement stmt = this.conn.prepareStatement(createInsertQuery())) {
+			this.mapData(stmt, new Object[]{
+					entity.getId(),
+					entity.getPostcode(),
+					entity.getHuisnummer(),
+					entity.getStraat(),
+					entity.getWoonplaats(),
+					entity.getReiziger_id()
+			});
 			return stmt.executeUpdate() == 1;
 		} catch (SQLException e) {
+			System.err.println(e.toString());
 			return false;
 		}
 	}
 
 	@Override
 	public boolean update(Adres entity) {
-		try (PreparedStatement stmt = this.conn.prepareStatement(
-				"UPDATE adres SET postcode = ?, huisnummer = ?, straat = ?, woonplaats = ?, reiziger_id = ? WHERE adres_id = ?"
-		)) {
+		try (PreparedStatement stmt = this.conn.prepareStatement(createUpdateQuery())) {
 			stmt.setString(1, entity.getPostcode());
 			stmt.setString(2, entity.getHuisnummer());
 			stmt.setString(3, entity.getStraat());
@@ -47,6 +43,7 @@ public class AdresDAOImpl implements AdresDAO {
 			stmt.setInt(6, entity.getId());
 			return stmt.executeUpdate() == 1;
 		} catch (SQLException e) {
+			System.err.println(e.toString());
 			return false;
 		}
 	}
@@ -57,18 +54,8 @@ public class AdresDAOImpl implements AdresDAO {
 			stmt.setInt(1, entity.getId());
 			return stmt.executeUpdate() == 1;
 		} catch (SQLException e) {
+			System.err.println(e.toString());
 			return false;
-		}
-	}
-
-	@Override
-	public Adres findById(int id) {
-		try (PreparedStatement stmt = this.conn.prepareStatement("SELECT * FROM adres WHERE adres_id = ?")) {
-			stmt.setInt(1, id);
-			ResultSet set = stmt.executeQuery();
-			return set.next() ? mapEntity(set) : null;
-		} catch (SQLException e) {
-			return null;
 		}
 	}
 
@@ -79,25 +66,13 @@ public class AdresDAOImpl implements AdresDAO {
 			ResultSet set = stmt.executeQuery();
 			return set.next() ? mapEntity(set) : null;
 		} catch (SQLException e) {
+			System.err.println(e.toString());
 			return null;
 		}
 	}
 
 	@Override
-	public List<Adres> findAll() {
-		try (Statement stmt = this.conn.createStatement()) {
-			ResultSet set = stmt.executeQuery("SELECT * FROM adres");
-			ArrayList<Adres> result = new ArrayList<>();
-			while (set.next()) {
-				result.add(mapEntity(set));
-			}
-			return result;
-		} catch (SQLException e) {
-			return Collections.emptyList();
-		}
-	}
-
-	private static Adres mapEntity(ResultSet set) throws SQLException {
+	protected Adres mapEntity(ResultSet set) throws SQLException {
 		Adres result = new Adres();
 		result.setId(set.getInt("adres_id"));
 		result.setPostcode(set.getString("postcode"));

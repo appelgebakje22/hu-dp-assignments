@@ -1,21 +1,27 @@
 package nl.appelgebakje22.dp.domain;
 
-import lombok.*;
-import nl.appelgebakje22.dp.dao.ReizigerDAO;
-
 import java.sql.Date;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import nl.appelgebakje22.dp.lib.SQLColumn;
+import nl.appelgebakje22.dp.lib.SQLIgnore;
+import nl.appelgebakje22.dp.lib.SQLTable;
 
 @NoArgsConstructor
 @AllArgsConstructor()
 @Getter
 @Setter
 @EqualsAndHashCode
+@SQLTable("reiziger")
 public class Reiziger {
 
-	private int id;
+	@SQLColumn("reiziger_id") private int id;
 	private String voorletters, tussenvoegsel, achternaam;
 	private Date geboortedatum;
-	private Adres adres;
+	@SQLIgnore private Adres adres;
 
 	@Override
 	public String toString() {
