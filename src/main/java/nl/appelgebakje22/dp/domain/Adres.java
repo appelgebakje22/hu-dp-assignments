@@ -17,7 +17,7 @@ import nl.appelgebakje22.dp.lib.SQLTable;
 public class Adres {
 
 	@SQLColumn("adres_id")
-	private Integer id;
+	private int id;
 	private String postcode, huisnummer, straat, woonplaats;
 	private int reiziger_id;
 
