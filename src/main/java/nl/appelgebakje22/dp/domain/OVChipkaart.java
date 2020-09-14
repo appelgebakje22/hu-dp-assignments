@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import nl.appelgebakje22.dp.lib.SQLIgnore;
 import nl.appelgebakje22.dp.lib.SQLTable;
 
 @NoArgsConstructor
@@ -18,9 +19,10 @@ import nl.appelgebakje22.dp.lib.SQLTable;
 @SQLTable("ov_chipkaart")
 public class OVChipkaart {
 
-	private int kaart_nummer;
+	private Integer kaart_nummer;
 	private Date geldig_tot;
 	private int klasse;
 	private float saldo;
-	private int reizigers_id;
+	private int reiziger_id;
+	@SQLIgnore private Reiziger reiziger;
 }

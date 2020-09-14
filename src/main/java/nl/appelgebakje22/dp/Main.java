@@ -11,6 +11,7 @@ import nl.appelgebakje22.dp.lib.Helper;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -62,7 +63,7 @@ public class Main {
 		//Maak een nieuwe reiziger aan en persisteer deze in de database
 		Adres adres = new Adres(TEST_ID, "1234AB", "1", "Straat", "Plaats", TEST_ID);
 		String gbdatum = "1981-03-14";
-		Reiziger sietske = new Reiziger(TEST_ID, "S", "", "Boers", java.sql.Date.valueOf(gbdatum), adres);
+		Reiziger sietske = new Reiziger(TEST_ID, "S", "", "Boers", java.sql.Date.valueOf(gbdatum), adres, new ArrayList<>());
 		if (rdao.save(sietske)) {
 			System.out.print("[Test]Eerst " + reizigers.size() + " reizigers, na ReizigerDAO.save() ");
 			reizigers = rdao.findAll();

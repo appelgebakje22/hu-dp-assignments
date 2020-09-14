@@ -24,7 +24,7 @@ public final class OVChipkaartDAOImpl extends AbstractDAOImpl<OVChipkaart> imple
 					entity.getGeldig_tot(),
 					entity.getKlasse(),
 					entity.getSaldo(),
-					entity.getReizigers_id()
+					entity.getReiziger_id()
 			});
 			return stmt.executeUpdate() == 1;
 		} catch (SQLException e) {
@@ -40,7 +40,7 @@ public final class OVChipkaartDAOImpl extends AbstractDAOImpl<OVChipkaart> imple
 			stmt.setDate(2, entity.getGeldig_tot());
 			stmt.setInt(3, entity.getKlasse());
 			stmt.setFloat(4, entity.getSaldo());
-			stmt.setInt(5, entity.getReizigers_id());
+			stmt.setInt(5, entity.getReiziger_id());
 			return stmt.executeUpdate() == 1;
 		} catch (SQLException e) {
 			System.err.println(e.toString());
@@ -66,7 +66,9 @@ public final class OVChipkaartDAOImpl extends AbstractDAOImpl<OVChipkaart> imple
 			ResultSet set = stmt.executeQuery();
 			ArrayList<OVChipkaart> result = new ArrayList<>();
 			while (set.next()) {
-				result.add(this.mapEntity(set));
+				OVChipkaart entity = this.mapEntity(set);
+				entity.setReiziger(reiziger);
+				result.add(entity);
 			}
 			return result;
 		} catch (SQLException e) {
@@ -82,7 +84,7 @@ public final class OVChipkaartDAOImpl extends AbstractDAOImpl<OVChipkaart> imple
 		result.setGeldig_tot(set.getDate(this.columns[1]));
 		result.setKlasse(set.getInt(this.columns[2]));
 		result.setSaldo(set.getFloat(this.columns[3]));
-		result.setReizigers_id(set.getInt(this.columns[4]));
+		result.setReiziger_id(set.getInt(this.columns[4]));
 		return result;
 	}
 }

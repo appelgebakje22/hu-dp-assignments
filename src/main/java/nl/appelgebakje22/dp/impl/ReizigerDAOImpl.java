@@ -9,16 +9,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import nl.appelgebakje22.dp.dao.AdresDAO;
+import nl.appelgebakje22.dp.dao.OVChipkaartDAO;
 import nl.appelgebakje22.dp.dao.ReizigerDAO;
+import nl.appelgebakje22.dp.domain.Adres;
 import nl.appelgebakje22.dp.domain.Reiziger;
 
 public final class ReizigerDAOImpl extends AbstractDAOImpl<Reiziger> implements ReizigerDAO {
 
 	private final AdresDAO adao;
+	private final OVChipkaartDAO odao;
 
 	public ReizigerDAOImpl(Connection conn) {
 		super(conn, Reiziger.class);
 		this.adao = new AdresDAOImpl(conn);
+		this.odao = new OVChipkaartDAOImpl(conn);
 	}
 
 	@Override
@@ -32,7 +36,12 @@ public final class ReizigerDAOImpl extends AbstractDAOImpl<Reiziger> implements 
 					entity.getGeboortedatum()
 			});
 			if (stmt.executeUpdate() == 1) {
-				return this.adao.save(entity.getAdres());
+				Adres adres = entity.getAdres();
+				if (adres.getId() == null) {
+					return this.adao.save(adres);
+				} else {
+					return this.adao.update(adres);
+				}
 			}
 			return false;
 		} catch (SQLException e) {
@@ -50,10 +59,11 @@ public final class ReizigerDAOImpl extends AbstractDAOImpl<Reiziger> implements 
 			stmt.setDate(4, entity.getGeboortedatum());
 			stmt.setInt(5, entity.getId());
 			if (stmt.executeUpdate() == 1) {
-				if (this.adao.findById(entity.getAdres().getId()) == null) {
-					return this.adao.save(entity.getAdres());
+				Adres adres = entity.getAdres();
+				if (adres.getId() == null) {
+					return this.adao.save(adres);
 				} else {
-					return this.adao.update(entity.getAdres());
+					return this.adao.update(adres);
 				}
 			}
 			return false;
@@ -102,6 +112,7 @@ public final class ReizigerDAOImpl extends AbstractDAOImpl<Reiziger> implements 
 		result.setAchternaam(set.getString("achternaam"));
 		result.setGeboortedatum(set.getDate("geboortedatum"));
 		result.setAdres(this.adao.findByReiziger(result));
+		result.setOvList(this.odao.findByReiziger(result));
 		return result;
 	}
 }

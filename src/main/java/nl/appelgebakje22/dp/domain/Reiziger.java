@@ -1,6 +1,7 @@
 package nl.appelgebakje22.dp.domain;
 
 import java.sql.Date;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -18,10 +19,11 @@ import nl.appelgebakje22.dp.lib.SQLTable;
 @SQLTable("reiziger")
 public class Reiziger {
 
-	@SQLColumn("reiziger_id") private int id;
+	@SQLColumn("reiziger_id") private Integer id;
 	private String voorletters, tussenvoegsel, achternaam;
 	private Date geboortedatum;
 	@SQLIgnore private Adres adres;
+	@SQLIgnore private List<OVChipkaart> ovList;
 
 	@Override
 	public String toString() {

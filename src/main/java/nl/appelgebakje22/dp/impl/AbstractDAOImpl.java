@@ -41,6 +41,9 @@ abstract class AbstractDAOImpl<T> implements IDAO<T> {
 			Field field = fields[i];
 			String name = field.isAnnotationPresent(SQLColumn.class) ? field.getAnnotation(SQLColumn.class).value() : field.getName();
 			Class<?> type = field.getType();
+			if (i == 0 && type.isPrimitive()) {
+				throw new RuntimeException("Field %s must not be a primitive");
+			}
 			if (!AbstractDAOImpl.ALLOWED_TYPES.contains(field.getType())) {
 				throw new RuntimeException(String.format("Field %s has invalid type %s", name, type.getName()));
 			}
