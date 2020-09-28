@@ -2,12 +2,15 @@ package nl.appelgebakje22.dp;
 
 import nl.appelgebakje22.dp.dao.AdresDAO;
 import nl.appelgebakje22.dp.dao.OVChipkaartDAO;
+import nl.appelgebakje22.dp.dao.ProductDAO;
 import nl.appelgebakje22.dp.dao.ReizigerDAO;
 import nl.appelgebakje22.dp.domain.Adres;
 import nl.appelgebakje22.dp.domain.OVChipkaart;
+import nl.appelgebakje22.dp.domain.Product;
 import nl.appelgebakje22.dp.domain.Reiziger;
 import nl.appelgebakje22.dp.impl.AdresDAOImpl;
 import nl.appelgebakje22.dp.impl.OVChipkaartDAOImpl;
+import nl.appelgebakje22.dp.impl.ProductDAOImpl;
 import nl.appelgebakje22.dp.impl.ReizigerDAOImpl;
 import nl.appelgebakje22.dp.lib.Helper;
 
@@ -32,6 +35,7 @@ public class Main {
     private final ReizigerDAO rdao;
     private final AdresDAO adao;
     private final OVChipkaartDAO odao;
+    private final ProductDAO pdao;
 
     public Main() {
         try {
@@ -52,6 +56,7 @@ public class Main {
         this.rdao = new ReizigerDAOImpl(this.conn);
         this.adao = new AdresDAOImpl(this.conn);
         this.odao = new OVChipkaartDAOImpl(this.conn);
+        this.pdao = new ProductDAOImpl(this.conn);
         this.doTests();
         try {
             this.conn.close();
@@ -60,54 +65,12 @@ public class Main {
     }
 
     private void doTests() {
-        System.out.println("Initial state");
-        this.printSizes();
-
-        Adres adres = new Adres(TEST_ID, "1234AB", "11", "Straat", "Nieuwegein", TEST_ID);
-        Reiziger reiziger = new Reiziger(TEST_ID, "DA", "van den", "Ham", Date.valueOf("1995-12-03"), adres, new ArrayList<>());
-
-        if (this.rdao.save(reiziger)) {
-            System.out.println("[Reiziger]Save success!");
-            this.printSizes();
-
-        } else {
-            System.err.println("[Reiziger]Save errored!");
-            return;
-        }
-
-        if (this.rdao.delete(reiziger)) {
-            System.out.println("[Reiziger]Delete success!");
-            this.printSizes();
-        } else {
-            System.err.println("[Reiziger]Delete errored!");
-            return;
-        }
-
-        OVChipkaart ov = new OVChipkaart(TEST_ID, Date.valueOf("2020-01-01"), 1, 1.0F, TEST_ID);
-        reiziger.getOvList().add(ov);
-        if (this.rdao.save(reiziger)) {
-            System.out.println("[Reiziger - OVChip]Save success!");
-            this.printSizes();
-
-        } else {
-            System.err.println("[Reiziger - OVChip]Save errored!");
-            return;
-        }
-
-        reiziger.getOvList().remove(ov);
-        if (this.rdao.update(reiziger)) {
-            System.out.println("[Reiziger - OVChip]Delete success!");
-            this.printSizes();
-        } else {
-            System.err.println("[Reiziger - OVChip]Delete errored!");
-            return;
-        }
-    }
-
-    private void printSizes() {
-        System.out.println("\tNumber of reizigers: " + this.rdao.findAll().size());
-        System.out.println("\tNumber of adressen: " + this.adao.findAll().size());
-        System.out.println("\tNumber of ovChipkaarten: " + this.odao.findAll().size());
+        OVChipkaart ov = this.odao.findById(35283);
+        System.out.println("OV 35283 heeft " + ov.getProductList().size() + " producten");
+        Product p = ov.getProductList().get(0).resolve().get();
+        this.pdao.delete(p);
+        ov = this.odao.findById(35283);
+        System.out.println("OV 35283 heeft " + ov.getProductList().size() + " producten");
     }
 
     private void cleanup() {
@@ -118,6 +81,10 @@ public class Main {
         Helper.doSilently(() -> {
             AdresDAO adao = new AdresDAOImpl(this.conn);
             adao.delete(adao.findById(TEST_ID));
+        });
+        Helper.doSilently(() -> {
+            ProductDAO pdao = new ProductDAOImpl(this.conn);
+            pdao.delete(pdao.findById(TEST_ID));
         });
         Helper.doSilently(() -> {
             OVChipkaartDAO odao = new OVChipkaartDAOImpl(this.conn);

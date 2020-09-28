@@ -6,14 +6,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import nl.appelgebakje22.dp.dao.OVChipkaartDAO;
+import nl.appelgebakje22.dp.dao.ProductDAO;
 import nl.appelgebakje22.dp.domain.OVChipkaart;
+import nl.appelgebakje22.dp.domain.Product;
 import nl.appelgebakje22.dp.domain.Reiziger;
+import nl.appelgebakje22.dp.lib.LazyOptional;
 
 public final class OVChipkaartDAOImpl extends AbstractDAOImpl<OVChipkaart> implements OVChipkaartDAO {
 
+	private final ProductDAO pdao;
+
 	public OVChipkaartDAOImpl(Connection conn) {
 		super(conn, OVChipkaart.class);
+		this.pdao = new ProductDAOImpl(conn);
 	}
 
 	@Override
@@ -26,7 +33,13 @@ public final class OVChipkaartDAOImpl extends AbstractDAOImpl<OVChipkaart> imple
 					entity.getSaldo(),
 					entity.getReiziger_id()
 			});
-			return stmt.executeUpdate() == 1;
+			if (stmt.executeUpdate() == 1) {
+				return entity.getProductList().stream().allMatch(lazy -> {
+					Product product = lazy.resolve().get();
+					return this.pdao.findById(product.getProduct_nummer()) != null ? this.pdao.update(product) : this.pdao.save(product);
+				});
+			}
+			return false;
 		} catch (SQLException e) {
 			System.err.println(e.toString());
 			return false;
@@ -41,7 +54,13 @@ public final class OVChipkaartDAOImpl extends AbstractDAOImpl<OVChipkaart> imple
 			stmt.setInt(3, entity.getKlasse());
 			stmt.setFloat(4, entity.getSaldo());
 			stmt.setInt(5, entity.getReiziger_id());
-			return stmt.executeUpdate() == 1;
+			if (stmt.executeUpdate() == 1) {
+				return entity.getProductList().stream().allMatch(lazy -> {
+					Product product = lazy.resolve().get();
+					return this.pdao.findById(product.getProduct_nummer()) != null ? this.pdao.update(product) : this.pdao.save(product);
+				});
+			}
+			return false;
 		} catch (SQLException e) {
 			System.err.println(e.toString());
 			return false;
@@ -50,13 +69,20 @@ public final class OVChipkaartDAOImpl extends AbstractDAOImpl<OVChipkaart> imple
 
 	@Override
 	public boolean delete(OVChipkaart entity) {
-		try (PreparedStatement stmt = this.conn.prepareStatement(String.format("DELETE FROM ov_chipkaart WHERE %s = ?", this.columns[0]))) {
+		try (PreparedStatement stmt = this.conn.prepareStatement("DELETE FROM ov_chipkaart_product WHERE kaart_nummer = ?")) {
 			stmt.setInt(1, entity.getKaart_nummer());
-			return stmt.executeUpdate() == 1;
+			if (stmt.executeUpdate() == 1) {
+				try (PreparedStatement stmt2 = this.conn.prepareStatement(String.format("DELETE FROM ov_chipkaart WHERE %s = ?", this.columns[0]))) {
+					stmt2.setInt(1, entity.getKaart_nummer());
+					return stmt2.executeUpdate() == 1;
+				} catch (SQLException e) {
+					System.err.println(e.toString());
+				}
+			}
 		} catch (SQLException e) {
 			System.err.println(e.toString());
-			return false;
 		}
+		return false;
 	}
 
 	@Override
@@ -85,6 +111,23 @@ public final class OVChipkaartDAOImpl extends AbstractDAOImpl<OVChipkaart> imple
 		result.setKlasse(set.getInt(this.columns[2]));
 		result.setSaldo(set.getFloat(this.columns[3]));
 		result.setReiziger_id(set.getInt(this.columns[4]));
-		return result;
+		return mapProducts(result);
+	}
+
+	protected OVChipkaart mapProducts(OVChipkaart entity) throws SQLException {
+		PreparedStatement stmt = this.conn.prepareStatement(
+				"SELECT product.product_nummer FROM product INNER JOIN ov_chipkaart_product ON ov_chipkaart_product.product_nummer = product.product_nummer WHERE ov_chipkaart_product.kaart_nummer = ?"
+		);
+		stmt.setInt(1, entity.getKaart_nummer());
+		List<Integer> resultList = new ArrayList<>();
+		ResultSet set = stmt.executeQuery();
+		while (set.next()) {
+			resultList.add(set.getInt(1));
+		}
+		entity.setProductIdList(resultList);
+		entity.setProductList(new ArrayList(resultList.stream().map(
+				id -> LazyOptional.of(() -> this.pdao.findById(id))
+		).collect(Collectors.toList())));
+		return entity;
 	}
 }
